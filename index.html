@@ -114,7 +114,7 @@ const nav=[['flights','✈','확정 항공편','출국 · 경유 · 귀국'],['s
 let scheduleMode='all',selectedDayIndex=0;
 function dayShortLabel(date){const d=new Date(date+'T12:00:00');if(Number.isNaN(+d))return date;return (d.getMonth()+1)+'/'+d.getDate()+' ('+['일','월','화','수','목','금','토'][d.getDay()]+')'}
 function scheduleSplit(raw){const x=String(raw).split(' | ');return x.length>1?[x[0],x.slice(1).join(' | ')]:['일정',x[0]]}
-function scheduleMakeItem(time,content){return time.trim()+' | '+content.trim()}
+function scheduleMakeItem(time,content){const t=time.trim();const match=t.match(/^(\d{1,2}):(\d{2})$/);const normalized=match?String(+match[1]).padStart(2,'0')+':'+match[2]:t;return normalized+' | '+content.trim()}
 
 function scheduleTimeOrder(raw){
  const [label]=scheduleSplit(raw),v=label.trim();
@@ -135,6 +135,8 @@ function scheduleTimeOrder(raw){
 
 function renderDays(){
 const data=state.days;
+// Keep the saved activity order chronological as well as the displayed order.
+for(const d of data){if(Array.isArray(d.items))d.items.sort((a,b)=>scheduleTimeOrder(a)-scheduleTimeOrder(b))}
 const orderedDays=data.map((d,i)=>({d,i})).sort((a,b)=>a.d.date.localeCompare(b.d.date)||a.i-b.i);
 if(selectedDayIndex>=data.length)selectedDayIndex=Math.max(0,data.length-1);
 document.getElementById('daysAllView').classList.toggle('active',scheduleMode==='all');
@@ -154,13 +156,13 @@ const [previousTime,previousContent]=scheduleSplit(state.days[i].items[j]);
 const time=prompt('시간 수정 (예: 09:00 또는 오전)',previousTime);if(time===null)return;
 const content=prompt('일정 내용 수정',previousContent);if(content===null)return;
 if(!time.trim()||!content.trim()){alert('시간과 내용을 모두 입력해 주세요.');return}
-state.days[i].items[j]=scheduleMakeItem(time,content);save();renderDays();
+state.days[i].items[j]=scheduleMakeItem(time,content);state.days[i].items.sort((a,b)=>scheduleTimeOrder(a)-scheduleTimeOrder(b));save();renderDays();
 }
 function addScheduleItem(i){
 const time=prompt(dayShortLabel(state.days[i].date)+' · 추가할 일정 시간 (예: 14:00)','14:00');if(time===null)return;
 const content=prompt('새 일정 내용','');if(content===null)return;
 if(!time.trim()||!content.trim()){alert('시간과 내용을 모두 입력해 주세요.');return}
-state.days[i].items.push(scheduleMakeItem(time,content));save();renderDays();
+state.days[i].items.push(scheduleMakeItem(time,content));state.days[i].items.sort((a,b)=>scheduleTimeOrder(a)-scheduleTimeOrder(b));save();renderDays();
 }
 function editDay(i){
 const d=state.days[i];const date=prompt('날짜 (YYYY-MM-DD)',d.date);if(date===null)return;

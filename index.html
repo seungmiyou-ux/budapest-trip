@@ -40,7 +40,7 @@
 <div class="stop"><span><b>5/6(목) 01:45</b><br>이스탄불 IST 출발</span><span>TK090<br>보잉 777-300ER</span></div>
 <div class="stop"><span><b>5/6(목) 17:40</b><br>인천 ICN · 터미널 1</span><span>비행 9시간 55분</span></div></article></div>
 <div class="note">항공편은 공유한 예약 화면 기준입니다. 탑승 터미널·운항 시간과 수하물 조건은 출발 전 항공사 안내를 최종 확인하세요. 연차는 4/30(금), 5/4(화), 5/6(목) 총 3일입니다.</div></section>
-<section id="schedule" class="view"><div class="section-title"><div><h2>날짜별 여행 일정</h2><p>확정 항공편·호텔 숙박일에 맞춘 4/30~5/5 여행 초안입니다.</p></div><button class="btn primary small" id="addDay">+ 일정 추가</button></div><div class="alerts">항공편과 호텔은 확정했으며, 관광 동선은 아직 예시입니다. 하루 일정은 '시간 | 내용' 형식으로 편집할 수 있어요. 수정 내용은 이 기기의 브라우저에 저장됩니다.</div><div id="days" style="margin-top:15px"></div></section>
+<section id="schedule" class="view"><div class="section-title"><div><h2>날짜별 여행 일정</h2><p>확정 항공편·호텔 숙박일에 맞춘 4/30~5/5 여행 초안입니다.</p></div><button class="btn primary small" id="addDay">+ 일정 추가</button></div><div class="alerts">항공편과 호텔은 확정했으며, 관광 동선은 아직 예시입니다. 하루 일정은 '시간 | 내용' 형식으로 편집할 수 있어요. 수정 내용은 이 기기의 브라우저에 저장됩니다.</div><div class="row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:15px"><button class="btn small active" id="daysAllView" type="button">전체 보기</button><button class="btn small" id="daysSingleView" type="button">날짜별 보기</button></div><div id="daysPicker" style="display:none;gap:8px;flex-wrap:wrap;margin-top:12px"></div><div id="days" style="margin-top:15px"></div></section>
 <section id="places" class="view"><div class="section-title"><div><h2>관광지 & 가고 싶은 곳</h2><p>시내 명소, 근교 소도시, 온천 후보를 미리 모았습니다.</p></div></div><div class="grid3" id="placeCards"></div><div class="section-title"><div><h2>내 관광지 추가</h2><p>원하는 장소를 직접 저장할 수 있어요.</p></div></div><form class="panel" id="placeForm"><div class="formgrid"><div class="field"><label for="placeName">장소 이름</label><input id="placeName" required placeholder="예: 루다시 온천"></div><div class="field"><label for="placeCategory">분류</label><select id="placeCategory"><option>부다페스트 시내</option><option>온천</option><option>근교 소도시</option><option>식당·카페</option><option>기타</option></select></div></div><div class="field"><label for="placeNote">메모</label><input id="placeNote" placeholder="방문 이유, 입장권, 방문 시간 등"></div><button class="btn primary" type="submit">장소 저장</button><div class="editable-list" id="customPlaces"></div></form></section>
 <section id="budget" class="view"><div class="section-title"><div><h2>여행 예산</h2><p>항공권 외 비용을 추가해 예상 총비용을 계산해보세요.</p></div></div><div class="stats"><div class="stat"><div class="label">항공권 (2인)</div><strong id="flightBudgetLabel">2,780,000원</strong></div><div class="stat"><div class="label">숙박 (2인)</div><strong id="stayBudgetLabel">680,000원</strong></div><div class="stat"><div class="label">교통·식비 및 기타 (2인)</div><strong id="miscBudgetLabel">0원</strong></div><div class="stat"><div class="label">예상 합계 (2인)</div><strong id="totalBudgetLabel">3,460,000원</strong></div></div><div class="budgetgrid"><div class="panel"><div class="field"><label>항공권 기준 선택</label><select id="budgetFlight"><option value="278">확정 터키항공 왕복 · 2인 2,780,000원</option></select></div><div id="budgetInputs"></div><button class="btn primary small" id="saveBudget">예산 저장</button><div class="note">항공권 2인 2,780,000원과 숙소 2인 680,000원은 확정 금액입니다. 숙소 결제는 완료되었습니다. 숙박비는 중복 입력하지 않아도 되며 나머지 예상 경비만 수정하세요.</div></div><div class="panel"><h3 style="margin:0 0 10px">지출 비중</h3><div id="budgetBars"></div></div></div></section>
 <section id="expenses" class="view">
@@ -107,9 +107,55 @@ async function syncWrite(){if(!cloudReady||!cloudLoaded||!cloudDoc)return;const 
 function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;')}
 const tabs=document.querySelectorAll('[data-tab]');function showTab(t){tabs.forEach(b=>b.classList.toggle('active',b.dataset.tab===t));document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===t));history.replaceState(null,'','#'+t);window.scrollTo({top:0,behavior:'smooth'})}tabs.forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 const nav=[['flights','✈','확정 항공편','출국 · 경유 · 귀국'],['schedule','▦','여행 일정','날짜별 동선과 활동'],['places','⌖','관광지','명소 · 온천 · 근교'],['budget','₩','여행 예산','항공권 + 현지 경비'],['expenses','▣','지출 내역','날짜별 실제 지출 · 가계부'],['checklist','✓','여행 준비','체크리스트 관리']];document.getElementById('quicknav').innerHTML=nav.map(x=>`<button class="feature" data-open="${x[0]}"><span class="symbol">${x[1]}</span><strong>${x[2]}</strong><span>${x[3]}</span></button>`).join('');document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>showTab(b.dataset.open));
-function renderDays(){document.getElementById('days').innerHTML=state.days.map((d,i)=>`<article class="day"><div class="dayhead"><div><span class="chip">DAY ${i+1} · ${esc(d.date)}</span><h3>${esc(d.title)}</h3></div><button class="btn small" data-editday="${i}">편집</button></div><div class="items">${d.items.map(it=>{let [time,...rest]=it.split(' | ');return `<div class="activity"><time>${esc(rest.length?time:'일정')}</time><span>${esc(rest.length?rest.join(' | '):it)}</span></div>`}).join('')}</div></article>`).join('');document.querySelectorAll('[data-editday]').forEach(b=>b.onclick=()=>editDay(+b.dataset.editday))}
-function editDay(i){const d=state.days[i];let date=prompt('날짜 (YYYY-MM-DD)',d.date);if(date===null)return;if(!/^20\d\d-\d\d-\d\d$/.test(date)){alert('날짜 형식을 확인해주세요.');return}let title=prompt('일정 제목',d.title);if(title===null)return;let items=prompt('일정을 줄바꿈으로 구분해 입력하세요.\n예: 09:00 | 온천 방문',d.items.join('\n'));if(items===null)return;state.days[i]={date,title,items:items.split('\n').map(x=>x.trim()).filter(Boolean)};save();renderDays()}
-document.getElementById('addDay').onclick=()=>{state.days.push({date:'2027-05-06',title:'새 일정',items:['09:00 | 일정 입력']});save();renderDays();editDay(state.days.length-1)};renderDays();
+
+let scheduleMode='all',selectedDayIndex=0;
+function dayShortLabel(date){const d=new Date(date+'T12:00:00');if(Number.isNaN(+d))return date;return (d.getMonth()+1)+'/'+d.getDate()+' ('+['일','월','화','수','목','금','토'][d.getDay()]+')'}
+function scheduleSplit(raw){const x=String(raw).split(' | ');return x.length>1?[x[0],x.slice(1).join(' | ')]:['일정',x[0]]}
+function scheduleMakeItem(time,content){return time.trim()+' | '+content.trim()}
+function renderDays(){
+const data=state.days;
+if(selectedDayIndex>=data.length)selectedDayIndex=Math.max(0,data.length-1);
+document.getElementById('daysAllView').classList.toggle('active',scheduleMode==='all');
+document.getElementById('daysSingleView').classList.toggle('active',scheduleMode==='single');
+const picker=document.getElementById('daysPicker');picker.style.display=scheduleMode==='single'?'flex':'none';
+picker.innerHTML=data.map((d,i)=>'<button class="btn small '+(selectedDayIndex===i?'active':'')+'" type="button" data-pickday="'+i+'">'+esc(dayShortLabel(d.date))+'</button>').join('');
+const visible=data.map((d,i)=>({d,i})).filter(({i})=>scheduleMode==='all'||i===selectedDayIndex);
+document.getElementById('days').innerHTML=visible.map(({d,i})=>'<article class="day"><div class="dayhead"><div><span class="chip">DAY '+(i+1)+' · '+esc(dayShortLabel(d.date))+'</span><h3>'+esc(d.title)+'</h3></div><div style="display:flex;gap:7px;flex-wrap:wrap"><button class="btn small" data-additem="'+i+'" type="button">+ 일정 추가</button><button class="btn small" data-editday="'+i+'" type="button">날짜·제목 수정</button></div></div><div class="items">'+d.items.map((it,j)=>{const [time,content]=scheduleSplit(it);return '<div class="activity" style="display:flex;align-items:center;gap:10px"><time style="flex:0 0 auto">'+esc(time)+'</time><span style="flex:1;min-width:0;overflow-wrap:anywhere">'+esc(content)+'</span><button class="btn small" type="button" data-edititem="'+i+':'+j+'" aria-label="일정 수정" title="수정" style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:32px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="btn small danger" type="button" data-deleteitem="'+i+':'+j+'" title="삭제" aria-label="일정 삭제">×</button></div>'}).join('')+'</div></article>').join('');
+document.querySelectorAll('[data-pickday]').forEach(b=>b.onclick=()=>{selectedDayIndex=+b.dataset.pickday;renderDays()});
+document.querySelectorAll('[data-editday]').forEach(b=>b.onclick=()=>editDay(+b.dataset.editday));
+document.querySelectorAll('[data-additem]').forEach(b=>b.onclick=()=>addScheduleItem(+b.dataset.additem));
+document.querySelectorAll('[data-edititem]').forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.edititem.split(':').map(Number);editScheduleItem(i,j)});
+document.querySelectorAll('[data-deleteitem]').forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.deleteitem.split(':').map(Number);if(!confirm('이 일정을 삭제할까요?'))return;state.days[i].items.splice(j,1);save();renderDays()});
+}
+function editScheduleItem(i,j){
+const [previousTime,previousContent]=scheduleSplit(state.days[i].items[j]);
+const time=prompt('시간 수정 (예: 09:00 또는 오전)',previousTime);if(time===null)return;
+const content=prompt('일정 내용 수정',previousContent);if(content===null)return;
+if(!time.trim()||!content.trim()){alert('시간과 내용을 모두 입력해 주세요.');return}
+state.days[i].items[j]=scheduleMakeItem(time,content);save();renderDays();
+}
+function addScheduleItem(i){
+const time=prompt(dayShortLabel(state.days[i].date)+' · 추가할 일정 시간 (예: 14:00)','14:00');if(time===null)return;
+const content=prompt('새 일정 내용','');if(content===null)return;
+if(!time.trim()||!content.trim()){alert('시간과 내용을 모두 입력해 주세요.');return}
+state.days[i].items.push(scheduleMakeItem(time,content));save();renderDays();
+}
+function editDay(i){
+const d=state.days[i];const date=prompt('날짜 (YYYY-MM-DD)',d.date);if(date===null)return;
+if(!/^20\d\d-\d\d-\d\d$/.test(date)||Number.isNaN(+new Date(date+'T12:00:00'))){alert('날짜 형식을 확인해주세요.');return}
+const title=prompt('일정 제목',d.title);if(title===null)return;
+if(!title.trim()){alert('일정 제목을 입력하세요.');return}
+state.days[i]={...d,date,title:title.trim()};save();renderDays();
+}
+document.getElementById('daysAllView').onclick=()=>{scheduleMode='all';renderDays()};
+document.getElementById('daysSingleView').onclick=()=>{scheduleMode='single';renderDays()};
+document.getElementById('addDay').onclick=()=>{
+const date=prompt('새 날짜를 입력하세요 (YYYY-MM-DD)','2027-05-06');if(date===null)return;
+if(!/^20\d\d-\d\d-\d\d$/.test(date)||Number.isNaN(+new Date(date+'T12:00:00'))){alert('날짜를 확인해 주세요.');return}
+const title=prompt('새 날짜의 제목','새 일정');if(title===null)return;
+state.days.push({date,title:title.trim()||'새 일정',items:[]});selectedDayIndex=state.days.length-1;scheduleMode='single';save();renderDays();
+};
+renderDays();
 function mapUrl(name){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(name+', Hungary')}
 function renderPlaces(){document.getElementById('placeCards').innerHTML=places.map(p=>`<article class="place"><div class="place-visual" aria-hidden="true">${p.emoji}</div><div class="place-body"><span class="chip">${esc(p.cat)}</span><h3>${esc(p.name)}</h3><p>${esc(p.note)}</p><div class="links"><a href="${mapUrl(p.name)}" target="_blank" rel="noopener">Google 지도 ↗</a></div></div></article>`).join('');document.getElementById('customPlaces').innerHTML=state.customPlaces.map((p,i)=>`<div class="editable-item"><div><strong>${esc(p.name)}</strong><div class="muted">${esc(p.cat)} · ${esc(p.note)}</div><a href="${mapUrl(p.name)}" target="_blank" rel="noopener">지도 ↗</a></div><button class="btn danger small" data-delplace="${i}">삭제</button></div>`).join('');document.querySelectorAll('[data-delplace]').forEach(b=>b.onclick=()=>{state.customPlaces.splice(+b.dataset.delplace,1);save();renderPlaces()})}
 document.getElementById('placeForm').onsubmit=e=>{e.preventDefault();state.customPlaces.push({name:placeName.value,cat:placeCategory.value,note:placeNote.value});save();e.target.reset();renderPlaces()};renderPlaces();

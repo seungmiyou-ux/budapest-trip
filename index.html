@@ -57,6 +57,7 @@
 </section><section id="checklist" class="view"><div class="section-title"><div><h2>여행 준비 체크리스트</h2><p>완료한 항목을 체크하세요.</p></div><span class="chip green progress" id="progressLabel">0 / 0 완료</span></div><div class="grid2"><div class="panel"><h3 style="margin:0 0 10px">기본 준비</h3><div id="checks"></div></div><div class="panel"><h3 style="margin:0 0 10px">준비물 추가</h3><form id="checkForm" style="display:flex;gap:8px"><input id="newCheck" style="width:100%;min-width:0;border:1px solid #dbe2ec;border-radius:9px;padding:10px" required placeholder="예: 여행자 보험 확인"><button class="btn primary" type="submit">추가</button></form><p class="note">체크 상태는 자동 저장됩니다. 다른 기기에서도 이어서 보려면 상단의 데이터 백업 기능을 사용하세요.</p><button class="btn small" id="importBtn" type="button">백업 데이터 불러오기</button><input type="file" id="importFile" accept="application/json,.json" class="hide"></div></div></section>
 <div class="foot">Budapest 2027 · 개인 여행 플래너 | GitHub Pages는 정적 페이지입니다. 직접 입력한 일정·예산·체크리스트는 브라우저 저장소에만 저장되며 GitHub에 자동 업로드되지 않습니다. 민감한 예약번호는 공개 저장소의 HTML에 직접 넣지 마세요.</div></main>
 <script>
+window.BUDAPEST_FIREBASE_CONFIG = {
   apiKey: "AIzaSyDMgUQMYaviKrA9Q1aR62GB1qCgyYq7rOU",
   authDomain: "budapest-f168e.firebaseapp.com",
   projectId: "budapest-f168e",

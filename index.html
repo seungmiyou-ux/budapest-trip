@@ -87,6 +87,8 @@ state.days??=initialDays;state.customPlaces??=[];state.checks??=initialChecks.ma
 let cloudReady=false,cloudDoc=null,cloudUnsub=null,cloudLast=null,cloudSaving=false,cloudTimer=null,cloudLoaded=false,cloudAuth=null,cloudDb=null;
 function save(){try{localStorage.setItem(storageKey,JSON.stringify(state))}catch(e){alert('이 브라우저에서 저장할 수 없습니다. 데이터 백업을 이용하세요.')}if(cloudReady&&cloudLoaded&&cloudDoc){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncWrite,650)}}
 function syncStatus(t){const e=document.getElementById('syncStatus');if(e)e.textContent=t}
+function stableData(v){if(Array.isArray(v))return v.map(stableData);if(v&&typeof v==='object')return Object.fromEntries(Object.keys(v).sort().map(k=>[k,stableData(v[k])]));return v}
+function sameData(a,b){return JSON.stringify(stableData(a))===JSON.stringify(stableData(b))}
 async function syncWrite(){if(!cloudReady||!cloudLoaded||!cloudDoc)return;const payload=JSON.parse(JSON.stringify(state));cloudSaving=true;try{await cloudDoc.set({data:payload,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});cloudLast=JSON.stringify(payload);syncStatus('✓ 클라우드에 저장됨 · 다른 기기에도 반영됩니다.')}catch(e){syncStatus('저장 실패: '+e.message+' · 이 기기에는 보관됨. 백업을 권장합니다.')}finally{cloudSaving=false}}
 
 function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;')}
@@ -157,7 +159,7 @@ const data=snap.data()?.data;
 if(!data||!Array.isArray(data.days)||!Array.isArray(data.checks)){syncStatus('클라우드 데이터 구조가 올바르지 않습니다.');return}
 cloudLast=JSON.stringify(data);cloudLoaded=true;cloudReady=true;restore.disabled=false;
 const local=JSON.stringify(state);
-if(local!==cloudLast){if(cloudSaving)return;const consentKey='budapest-cloud-restore-'+user.uid;if(!sessionStorage.getItem(consentKey)){cloudReady=false;const accepted=confirm('클라우드와 이 기기의 여행 데이터가 다릅니다. 클라우드 데이터를 가져오면 현재 기기 데이터가 바뀝니다. 기존 체크리스트를 클라우드에 먼저 올릴 예정이라면 취소를 누르고 “이 기기 데이터 클라우드에 올리기”를 선택하세요.\n\n클라우드 데이터를 가져올까요?');if(!accepted){syncStatus('현재 기기 데이터를 유지합니다. 백업 후 “이 기기 데이터 클라우드에 올리기”를 눌러주세요.');cloudReady=true;return}sessionStorage.setItem(consentKey,'1')}try{localStorage.setItem(storageKey,cloudLast);syncStatus('☁ 다른 기기의 업데이트를 받았습니다. 화면을 갱신합니다.');location.reload()}catch(e){syncStatus('클라우드 적용 실패: '+e.message)}}else{sessionStorage.setItem('budapest-cloud-restore-'+user.uid,'1');syncStatus('✓ 동기화 연결됨 · '+user.email)}
+if(!sameData(state,data)){if(cloudSaving)return;const consentKey='budapest-cloud-restore-'+user.uid;if(!sessionStorage.getItem(consentKey)){cloudReady=false;const accepted=confirm('클라우드와 이 기기의 여행 데이터가 다릅니다. 클라우드 데이터를 가져오면 현재 기기 데이터가 바뀝니다. 기존 체크리스트를 클라우드에 먼저 올릴 예정이라면 취소를 누르고 “이 기기 데이터 클라우드에 올리기”를 선택하세요.\n\n클라우드 데이터를 가져올까요?');if(!accepted){syncStatus('현재 기기 데이터를 유지합니다. 백업 후 “이 기기 데이터 클라우드에 올리기”를 눌러주세요.');cloudReady=true;return}sessionStorage.setItem(consentKey,'1')}try{const version=cloudLast;const guardKey='budapest-last-loaded-'+user.uid;if(sessionStorage.getItem(guardKey)===version){syncStatus('☁ 클라우드 동기화 내용 확인됨 · 다른 수정사항은 동기화 설정에서 확인할 수 있습니다.');return}sessionStorage.setItem(guardKey,version);localStorage.setItem(storageKey,cloudLast);syncStatus('☁ 클라우드 데이터를 이 기기에 반영합니다.');location.reload()}catch(e){syncStatus('클라우드 적용 실패: '+e.message)}}else{sessionStorage.setItem('budapest-cloud-restore-'+user.uid,'1');syncStatus('✓ 동기화 연결됨 · '+user.email)}
 },e=>{cloudReady=false;cloudLoaded=false;syncStatus('클라우드 읽기 실패: '+e.message+' · Firestore 보안 규칙을 확인하세요.')})
 });
 })();

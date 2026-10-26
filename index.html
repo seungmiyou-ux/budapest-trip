@@ -136,7 +136,7 @@ function scheduleTimeOrder(raw){
 function renderDays(){
 const data=state.days;
 // Keep the saved activity order chronological as well as the displayed order.
-for(const d of data){if(Array.isArray(d.items))d.items.sort((a,b)=>scheduleTimeOrder(a)-scheduleTimeOrder(b))}
+for(const d of data){if(Array.isArray(d.items)){if(!Array.isArray(d.itemNotes))d.itemNotes=[];const pairs=d.items.map((item,k)=>({item,note:d.itemNotes[k]||'',k})).sort((a,b)=>scheduleTimeOrder(a.item)-scheduleTimeOrder(b.item)||a.k-b.k);d.items=pairs.map(x=>x.item);d.itemNotes=pairs.map(x=>x.note)}}
 const orderedDays=data.map((d,i)=>({d,i})).sort((a,b)=>a.d.date.localeCompare(b.d.date)||a.i-b.i);
 if(selectedDayIndex>=data.length)selectedDayIndex=Math.max(0,data.length-1);
 document.getElementById('daysAllView').classList.toggle('active',scheduleMode==='all');
@@ -144,26 +144,26 @@ document.getElementById('daysSingleView').classList.toggle('active',scheduleMode
 const picker=document.getElementById('daysPicker');picker.style.display=scheduleMode==='single'?'flex':'none';
 picker.innerHTML=orderedDays.map(({d,i})=>'<button class="btn small '+(selectedDayIndex===i?'active':'')+'" type="button" data-pickday="'+i+'">'+esc(dayShortLabel(d.date))+'</button>').join('');
 const visible=orderedDays.filter(({i})=>scheduleMode==='all'||i===selectedDayIndex);
-document.getElementById('days').innerHTML=visible.map(({d,i})=>'<article class="day"><div class="dayhead"><div><span class="chip">DAY '+(i+1)+' · '+esc(dayShortLabel(d.date))+'</span><h3>'+esc(d.title)+'</h3></div><div style="display:flex;gap:7px;flex-wrap:wrap"><button class="btn small" data-additem="'+i+'" type="button">+ 일정 추가</button><button class="btn small" data-editday="'+i+'" type="button">날짜·제목 수정</button></div></div><div class="items">'+d.items.map((it,j)=>({it,j})).sort((a,b)=>scheduleTimeOrder(a.it)-scheduleTimeOrder(b.it)||a.j-b.j).map(({it,j})=>{const [time,content]=scheduleSplit(it);return '<div class="activity" style="display:flex;align-items:center;gap:10px"><time style="flex:0 0 auto">'+esc(time)+'</time><span style="flex:1;min-width:0;overflow-wrap:anywhere">'+esc(content)+'</span><button class="btn small" type="button" data-edititem="'+i+':'+j+'" aria-label="일정 수정" title="수정" style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:32px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="btn small danger" type="button" data-deleteitem="'+i+':'+j+'" title="삭제" aria-label="일정 삭제">×</button></div>'}).join('')+'</div><div style="margin-top:14px;border-top:1px solid #e4e9f2;padding-top:12px"><label for="dayMemo-'+i+'" style="display:block;font-weight:700;font-size:13px;margin-bottom:7px">📝 오늘의 메모</label><textarea id="dayMemo-'+i+'" data-daymemo="'+i+'" rows="3" placeholder="예약 정보, 이동 팁, 가고 싶은 곳 등 자유롭게 기록해 주세요." style="width:100%;border:1px solid #dbe2ec;border-radius:10px;padding:12px;resize:vertical;background:#fafcff;color:#15223a">'+esc(d.memo||'')+'</textarea><div class="muted" style="font-size:11px">입력 내용 자동 저장 · Firebase 연결 시 동기화</div></div></article>').join('');
-document.querySelectorAll('[data-daymemo]').forEach(el=>el.oninput=()=>{const i=Number(el.dataset.daymemo);if(state.days[i]){state.days[i].memo=el.value;save()}});
+document.getElementById('days').innerHTML=visible.map(({d,i})=>'<article class="day"><div class="dayhead"><div><span class="chip">DAY '+(i+1)+' · '+esc(dayShortLabel(d.date))+'</span><h3>'+esc(d.title)+'</h3></div><div style="display:flex;gap:7px;flex-wrap:wrap"><button class="btn small" data-additem="'+i+'" type="button">+ 일정 추가</button><button class="btn small" data-editday="'+i+'" type="button">날짜·제목 수정</button></div></div><div class="items">'+d.items.map((it,j)=>({it,j})).sort((a,b)=>scheduleTimeOrder(a.it)-scheduleTimeOrder(b.it)||a.j-b.j).map(({it,j})=>{const [time,content]=scheduleSplit(it);return '<div class="activity-entry" style="margin-bottom:8px"><div class="activity" style="display:flex;align-items:center;gap:10px"><time style="flex:0 0 auto">'+esc(time)+'</time><span style="flex:1;min-width:0;overflow-wrap:anywhere">'+esc(content)+'</span><button class="btn small" type="button" data-edititem="'+i+':'+j+'" aria-label="일정 수정" title="수정" style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:32px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="btn small danger" type="button" data-deleteitem="'+i+':'+j+'" title="삭제" aria-label="일정 삭제">×</button></div><div style="padding:6px 8px 9px 8px"><textarea rows="2" data-itemmemo="'+i+':'+j+'" aria-label="일정 메모" placeholder="📝 이 일정의 메모 (이동 방법, 예약 정보, 참고사항 등)" style="display:block;width:100%;border:1px solid #e4e9f2;border-radius:9px;background:#fff;padding:9px 11px;resize:vertical;color:#15223a;font-size:13px">'+esc(d.itemNotes?.[j]||'')+'</textarea></div></div>'}).join('')+'</div></article>').join('');
+document.querySelectorAll('[data-itemmemo]').forEach(el=>el.oninput=()=>{const [i,j]=el.dataset.itemmemo.split(':').map(Number);const d=state.days[i];if(!d)return;d.itemNotes??=[];d.itemNotes[j]=el.value;save()});
 document.querySelectorAll('[data-pickday]').forEach(b=>b.onclick=()=>{selectedDayIndex=+b.dataset.pickday;renderDays()});
 document.querySelectorAll('[data-editday]').forEach(b=>b.onclick=()=>editDay(+b.dataset.editday));
 document.querySelectorAll('[data-additem]').forEach(b=>b.onclick=()=>addScheduleItem(+b.dataset.additem));
 document.querySelectorAll('[data-edititem]').forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.edititem.split(':').map(Number);editScheduleItem(i,j)});
-document.querySelectorAll('[data-deleteitem]').forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.deleteitem.split(':').map(Number);if(!confirm('이 일정을 삭제할까요?'))return;state.days[i].items.splice(j,1);save();renderDays()});
+document.querySelectorAll('[data-deleteitem]').forEach(b=>b.onclick=()=>{const [i,j]=b.dataset.deleteitem.split(':').map(Number);if(!confirm('이 일정을 삭제할까요?'))return;state.days[i].items.splice(j,1);state.days[i].itemNotes?.splice(j,1);save();renderDays()});
 }
 function editScheduleItem(i,j){
 const [previousTime,previousContent]=scheduleSplit(state.days[i].items[j]);
 const time=prompt('시간 수정 (예: 09:00 또는 오전)',previousTime);if(time===null)return;
 const content=prompt('일정 내용 수정',previousContent);if(content===null)return;
 if(!time.trim()||!content.trim()){alert('시간과 내용을 모두 입력해 주세요.');return}
-state.days[i].items[j]=scheduleMakeItem(time,content);state.days[i].items.sort((a,b)=>scheduleTimeOrder(a)-scheduleTimeOrder(b));save();renderDays();
+state.days[i].items[j]=scheduleMakeItem(time,content);save();renderDays();
 }
 function addScheduleItem(i){
 const time=prompt(dayShortLabel(state.days[i].date)+' · 추가할 일정 시간 (예: 14:00)','14:00');if(time===null)return;
 const content=prompt('새 일정 내용','');if(content===null)return;
 if(!time.trim()||!content.trim()){alert('시간과 내용을 모두 입력해 주세요.');return}
-state.days[i].items.push(scheduleMakeItem(time,content));state.days[i].items.sort((a,b)=>scheduleTimeOrder(a)-scheduleTimeOrder(b));save();renderDays();
+state.days[i].items.push(scheduleMakeItem(time,content));state.days[i].itemNotes??=[];state.days[i].itemNotes.push('');save();renderDays();
 }
 function editDay(i){
 const d=state.days[i];const date=prompt('날짜 (YYYY-MM-DD)',d.date);if(date===null)return;
